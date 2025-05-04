@@ -1,0 +1,35 @@
+# Ignore compiled object files
+*.o
+*.obj
+
+# Ignore executables
+rodcutA
+rodcutB
+*.out
+*.exe
+
+# Ignore build directories
+/build/
+/dist/
+/out/
+
+# Ignore macOS metadata
+.DS_Store
+
+# Ignore editor/IDE settings
+.vscode/
+*.code-workspace
+
+# Ignore logs, temp, and swap files
+*.log
+*.tmp
+*~
+*.swp
+*.swo
+
+# Ignore coverage/output directories
+.coverage/
+htmlcov/
+
+# Ignore environment files
+.env
