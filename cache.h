@@ -1,16 +1,20 @@
 #ifndef CACHE_H
 #define CACHE_H
 
-#define CACHE_SIZE 10
+#include <stdbool.h>
 
-typedef struct {
-    int entries[CACHE_SIZE];
-    int size;
-    char policy;
-} Cache;
+/* Initialize the cache 
+ * `max_length` is the largest rod length we’ll ever ask for. */
+void cache_init(int max_length);
 
-Cache* create_cache(char policy);
-void update_cache(Cache *cache, int length);
-void free_cache(Cache *cache);
+/* Try to look up subproblem `length`. Returns true if found, 
+ * filling *value_out and *choice_out. */
+bool cache_get(int length, int *value_out, int *choice_out);
 
-#endif
+/* Store the result for subproblem `length`. */
+void cache_put(int length, int value, int choice);
+
+/* Tear down any cache data. */
+void cache_destroy(void);
+
+#endif // CACHE_H

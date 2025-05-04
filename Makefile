@@ -1,15 +1,17 @@
-CC = gcc
-CFLAGS = -Wall -Wextra -std=c11
+CC      = gcc
+CFLAGS  = -std=c11 -Wall -Wextra -g
+OBJS    = main.o parser.o rodcut.o
 
-SRC = rod_cutting.c cache.c main.c
+all: rodcutA rodcutB
 
-all: rod_cutting_A rod_cutting_B
+rodcutA: $(OBJS) policy_a.o
+	$(CC) $(CFLAGS) -o $@ $(OBJS) policy_a.o
 
-rod_cutting_A: $(SRC) rod_cutting.h cache.h
-	$(CC) $(CFLAGS) -o rod_cutting_A $(SRC) -D POLICY_A
+rodcutB: $(OBJS) policy_b.o
+	$(CC) $(CFLAGS) -o $@ $(OBJS) policy_b.o
 
-rod_cutting_B: $(SRC) rod_cutting.h cache.h
-	$(CC) $(CFLAGS) -o rod_cutting_B $(SRC) -D POLICY_B
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f rod_cutting_A rod_cutting_B
+	rm -f *.o rodcutA rodcutB

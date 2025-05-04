@@ -1,37 +1,61 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include "rod_cutting.h"
+#include "parser.h"
+#include "rodcut.h"
 #include "cache.h"
 
 int main(int argc, char *argv[]) {
-    if (argc != 3) {
-        fprintf(stderr, "Usage: %s <price_file> <policy (A or B)>\n", argv[0]);
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s <price-file>\n", argv[0]);
         return EXIT_FAILURE;
     }
 
-    const char *filename = argv[1];
-    char policy = argv[2][0];
-    if (policy != 'A' && policy != 'B') {
-        fprintf(stderr, "Invalid policy. Use 'A' for LRU or 'B' for MRU/LIFO.\n");
+    /* 1) Read the one‐time price list */
+    Piece *pieces = NULL;
+    size_t piece_count = 0;
+    if (read_price_list(argv[1], &pieces, &piece_count) != 0) {
+        perror("read_price_list");
         return EXIT_FAILURE;
     }
 
-    int piece_count;
-    Piece *pieces = read_price_file(filename, &piece_count);
-    if (!pieces) {
-        fprintf(stderr, "Error reading price file.\n");
+    /* 2) Read *all* query lengths from stdin */
+    int *queries = NULL;
+    size_t query_count = 0;
+    int max_query = 0;
+    if (read_queries(stdin, &queries, &query_count, &max_query) != 0) {
+        perror("read_queries");
+        free(pieces);
         return EXIT_FAILURE;
     }
 
-    Cache *cache = create_cache(policy);
-    int rod_length;
-    while (scanf("%d", &rod_length) == 1) {
-        printf("Rod Length: %d\n", rod_length);
-        solve_rod_cutting(rod_length, pieces, piece_count, cache);
+    /* 3) Initialize cache up to the largest requested length */
+    cache_init(max_query);
+
+    /* 4) For each query, compute & print */
+    for (size_t i = 0; i < query_count; i++) {
+        int L = queries[i];
+        int total = cut_rod(L, pieces, piece_count);
+
+        int *counts = NULL;
+        int rem = 0;
+        reconstruct_cuts(L, pieces, piece_count, &counts, &rem);
+
+        for (size_t j = 0; j < piece_count; j++) {
+            if (counts[j] > 0) {
+                printf("%d @ %d = %d\n",
+                       counts[j],
+                       pieces[j].length,
+                       counts[j] * pieces[j].value);
+            }
+        }
+        printf("Remainder: %d\n", rem);
+        printf("Value: %d\n", total);
+        free(counts);
     }
 
+    /* 5) Clean up */
+    cache_destroy();
     free(pieces);
-    free_cache(cache);
+    free(queries);
     return EXIT_SUCCESS;
 }
